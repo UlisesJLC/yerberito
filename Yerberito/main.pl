@@ -14,7 +14,7 @@ make_name_prompter(P) :-
     send(P, append, button(cancel, message(P, return, @nil))).
 
 % Predicado para mostrar imágenes
-mostrar(V, D):- 
+mostrar_imagen(V, D):- 
     new(I, image(V)),
     new(B, bitmap(I)),
     new(F, figure),
@@ -27,11 +27,11 @@ mostrar(V, D):-
 main :-
     new(V, dialog('Menu Principal', size(640, 480))),
     send(V, append, new(Menu, label(texto, 'Bienvenido al Yerberito Ilustrado'))),
-    mostrar('D:/imgYerberito/yerberito.jpg', V),
+    mostrar_imagen('D:/imgYerberito/yerberito.jpg', V),
     send(V, append, new(B1, button('Consultar por Planta', message(@prolog, abrir_consulta_por_planta)))),
-    send(V, append, new(B2, button('Consultar por Sintoma', message(@prolog, abrir_consulta_por_sintoma)))),
+    send(V, append, new(B2, button('Consultar por Suntoma', message(@prolog, abrir_consulta_por_sintoma)))),
     send(V, append, new(B3, button('Mostrar Imagen', message(@prolog, abrir_mostrar_imagen)))),
-    send(V, append, new(B4, button('Botiquin de Plantas', message(@prolog, mostrar_botiquin)))),
+    send(V, append, new(B4, button('Botiquun de Plantas', message(@prolog, mostrar_botiquin)))),
     send(V, append, new(B5, button('Consultar por Medicamento', message(@prolog, abrir_consulta_por_medicamento)))),
     send(B1, below, Menu),
     send(B2, below, B1),
@@ -45,7 +45,7 @@ abrir_mostrar_imagen :-
     new(D, dialog('Mostrar Imagen de la Planta', size(640, 400))),
     send(D, append, new(Planta, menu(nombre, cycle))),
     cargar_plantas(Planta),
-    send(D, append, button(mostrar, message(@prolog, mostrar_imagen, Planta?selection, D))),
+    send(D, append, button(mostrar, message(@prolog, mostrar_imagen_planta, Planta?selection, D))),
     send(D, open).
 
 % Predicado para cargar las plantas en el menú desplegable
@@ -112,6 +112,7 @@ consultar_planta(NombrePlanta, D) :-
     ->  mostrar_resultados(NombrePlantaMin, NombreCientifico, Usos, Preparaciones, Medicamentos, ComponentesQuimicos, Origen, ResultDialog)
     ;   mostrar_resultados(NombrePlantaMin, NombreCientifico, Usos, Preparaciones, Medicamentos, ComponentesQuimicos, 'Desconocido', ResultDialog)
     ),
+    mostrar_imagen_planta(NombrePlantaMin, ResultDialog),
     send(ResultDialog, append, button(cerrar, message(ResultDialog, destroy))),
     send(ResultDialog, open).
 
@@ -183,7 +184,7 @@ mostrar_resultados_por_sintoma(Sintoma, [Planta|Plantas], Dialog) :-
     mostrar_resultados_por_sintoma(Sintoma, Plantas, Dialog).
 
 % Predicado para mostrar resultados en el diálogo por medicamento
- mostrar_resultados_por_medicamento(_, [], Dialog) :-
+mostrar_resultados_por_medicamento(_, [], Dialog) :-
     send(Dialog, append, label(texto, 'No se encontraron plantas que contengan este medicamento.')).
 mostrar_resultados_por_medicamento(Medicamento, [Planta|Plantas], Dialog) :-
     consultar_planta(Planta, Dialog),
@@ -211,6 +212,15 @@ mostrar_botiquin([], _).
 mostrar_botiquin([P|Ps], Dialog) :-
     send(Dialog, append, label(texto, P)),
     mostrar_botiquin(Ps, Dialog).
+
+% Predicado para mostrar la imagen de una planta
+mostrar_imagen_planta(NombrePlanta, D) :-
+    atom_concat('D:/imgYerberito/', NombrePlanta, Path),
+    atom_concat(Path, '.png', ImagePath),
+    (   exists_file(ImagePath)
+    ->  mostrar_imagen(ImagePath, D)
+    ;   send(D, append, label(texto, 'No se encontro la imagen de la planta.'))
+    ).
 
 % Lanzar la interfaz
 :- main.
